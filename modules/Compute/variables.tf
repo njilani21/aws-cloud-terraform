@@ -1,5 +1,6 @@
 variable "project_name" {
   type = string
+  default = "Sample"
 }
 
 variable "vpc_id" {
@@ -39,7 +40,7 @@ variable "min_size" {
 
 variable "max_size" {
   type    = number
-  default = 6
+  default = 3
 }
 
 variable "desired_capacity" {

@@ -34,7 +34,7 @@ resource "aws_db_instance" "main" {
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [var.database_security_group_id]
 
-  backup_retention_period = 7
+  backup_retention_period = 3
   backup_window           = "03:00-04:00"
   maintenance_window      = "mon:04:30-mon:05:30"
 
