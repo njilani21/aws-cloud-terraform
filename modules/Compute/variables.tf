@@ -22,11 +22,6 @@ variable "app_security_group_id" {
   type = string
 }
 
-variable "ami_id" {
-  description = "AMI ID to launch (e.g. latest Amazon Linux 2023)"
-  type        = string
-}
-
 variable "instance_type" {
   type    = string
   default = "t3.micro"

@@ -13,11 +13,6 @@ variable "vpc_cidr" {
   default = "10.0.0.0/16"
 }
 
-variable "ami_id" {
-  description = "AMI ID to launch (look up latest Amazon Linux 2023 for your region)"
-  type        = string
-}
-
 variable "instance_type" {
   type    = string
   default = "t3.micro"

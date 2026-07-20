@@ -3,6 +3,22 @@
 # ALB + Auto Scaling Group across multiple AZs
 ############################################
 
+# ---------------- Auto-lookup latest Amazon Linux 2023 AMI ----------------
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 # ---------------- Application Load Balancer ----------------
 resource "aws_lb" "app" {
   name               = "${var.project_name}-alb"
@@ -74,7 +90,7 @@ locals {
 # ---------------- Launch Template ----------------
 resource "aws_launch_template" "app" {
   name_prefix   = "${var.project_name}-lt-"
-  image_id      = var.ami_id
+  image_id      = data.aws_ami.amazon_linux.id
   instance_type = var.instance_type
 
   vpc_security_group_ids = [var.app_security_group_id]

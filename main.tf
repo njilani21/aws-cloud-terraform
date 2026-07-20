@@ -1,14 +1,5 @@
 terraform {
-  cloud {
-    organization = "nasr-jilani"
-
-    workspaces {
-      name = "aws-cloud-terraform"
-    }
-  }
-
   required_version = ">= 1.5.0"
-
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -37,7 +28,6 @@ module "compute" {
   private_subnet_ids     = module.network.private_subnet_ids
   alb_security_group_id  = module.network.alb_security_group_id
   app_security_group_id  = module.network.app_security_group_id
-  ami_id                 = var.ami_id
   instance_type          = var.instance_type
 }
 
