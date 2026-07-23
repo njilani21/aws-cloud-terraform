@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "project_name" {
   type    = string
-  default = "ha-app"
+  default = "sample"
 }
 
 variable "vpc_cidr" {

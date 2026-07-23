@@ -1,6 +1,6 @@
 variable "project_name" {
   type = string
-  default = "Sample"
+  default = "sample"
 }
 
 variable "vpc_id" {
@@ -30,7 +30,7 @@ variable "instance_type" {
 
 variable "app_port" {
   type    = number
-  default = 8080
+  default = 80
 }
 
 variable "min_size" {
@@ -40,7 +40,8 @@ variable "min_size" {
 
 variable "max_size" {
   type    = number
-  default = 3
+  default = 4
+
 }
 
 variable "desired_capacity" {
@@ -51,7 +52,7 @@ variable "desired_capacity" {
 variable "website_source_dir" {
   description = "Local path to the static website folder to upload to S3"
   type        = string
-  default     = "../../html5-simple-personal-website-master"
+  default     = "../website"
 }
 
 # NOTE: user_data is no longer a plain variable default, because it needs to

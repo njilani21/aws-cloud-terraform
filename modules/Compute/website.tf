@@ -25,7 +25,8 @@ resource "aws_s3_bucket_public_access_block" "website" {
 
 # ---------------- Upload every file in the site folder ----------------
 # Point `website_source_dir` at your extracted site folder, e.g.
-# "../html5-simple-personal-website-master"
+# "../website"
+
 resource "aws_s3_object" "website_files" {
   for_each = fileset(var.website_source_dir, "**")
 

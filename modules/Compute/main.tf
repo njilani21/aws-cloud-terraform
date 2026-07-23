@@ -30,28 +30,28 @@ resource "aws_lb" "app" {
   enable_deletion_protection = false
 
   tags = {
-    Name = "${var.project_name}-alb"
+    Name = "${var.project_name}-ALB"
   }
 }
 
 # ---------------- Target Group ----------------
 resource "aws_lb_target_group" "app" {
-  name     = "${var.project_name}-tg"
+  name     = "${var.project_name}-TG"
   port     = var.app_port
   protocol = "HTTP"
   vpc_id   = var.vpc_id
 
   health_check {
-    path                = "/health"
-    healthy_threshold   = 2
+    path                = "/"
+    healthy_threshold   = 3
     unhealthy_threshold = 3
-    timeout             = 5
+    timeout             = 6
     interval            = 30
     matcher             = "200"
   }
 
   tags = {
-    Name = "${var.project_name}-tg"
+    Name = "${var.project_name}-TG"
   }
 }
 
@@ -60,6 +60,8 @@ resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.app.arn
   port              = 80
   protocol          = "HTTP"
+
+
 
   default_action {
     type             = "forward"
@@ -76,6 +78,8 @@ locals {
     # Install nginx and the AWS CLI
     dnf install -y nginx awscli
 
+    mkdir -p /usr/share/nginx/html
+
     # Pull the static site down from S3 into nginx's web root
     aws s3 sync s3://${aws_s3_bucket.website.id} /usr/share/nginx/html --delete
 
@@ -83,13 +87,13 @@ locals {
     echo "OK" > /usr/share/nginx/html/health
 
     systemctl enable nginx
-    systemctl start nginx
+    systemctl restart nginx
   EOF
 }
 
 # ---------------- Launch Template ----------------
 resource "aws_launch_template" "app" {
-  name_prefix   = "${var.project_name}-lt-"
+  name_prefix   = "${var.project_name}-LT"
   image_id      = data.aws_ami.amazon_linux.id
   instance_type = var.instance_type
 
@@ -108,7 +112,7 @@ resource "aws_launch_template" "app" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name = "${var.project_name}-app"
+      Name = "${var.project_name}-LT"
     }
   }
 
@@ -126,7 +130,7 @@ resource "aws_autoscaling_group" "app" {
   vpc_zone_identifier       = var.private_subnet_ids
   target_group_arns         = [aws_lb_target_group.app.arn]
   health_check_type         = "ELB"
-  health_check_grace_period = 60
+  health_check_grace_period = 180
 
   launch_template {
     id      = aws_launch_template.app.id

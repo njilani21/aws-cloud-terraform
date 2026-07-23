@@ -10,19 +10,16 @@ variable "database_security_group_id" {
   type = string
 }
 
-variable "db_engine" {
-  type    = string
-  default = "postgres"
-}
-
 variable "db_engine_version" {
-  type    = string
-  default = "16.3"
+  description = "MySQL engine version - must be an exact minor version currently offered by RDS in your region"
+  type        = string
+  default     = "8.0.44"
 }
 
 variable "db_instance_class" {
-  type    = string
-  default = "db.t3.medium"
+  description = "Not free-tier eligible once Multi-AZ is enabled - e.g. db.t3.medium or larger for production"
+  type        = string
+  default     = "db.t3.micro"
 }
 
 variable "allocated_storage" {
@@ -30,9 +27,15 @@ variable "allocated_storage" {
   default = 20
 }
 
+variable "backup_retention_period" {
+  description = "Days to retain automated backups"
+  type        = number
+  default     = 1
+}
+
 variable "db_name" {
   type    = string
-  default = "appdb"
+  default = "sampleAppDB"
 }
 
 variable "db_username" {

@@ -49,3 +49,10 @@ module "database" {
   db_username                 = var.db_username
   db_password                 = var.db_password
 }
+
+module "cdn" {
+  source = "./modules/CDN"
+
+  project_name = var.project_name
+  alb_dns_name = module.compute.alb_dns_name
+}

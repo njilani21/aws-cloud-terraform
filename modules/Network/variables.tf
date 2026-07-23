@@ -1,6 +1,7 @@
 variable "project_name" {
   description = "Name prefix used for tagging all resources"
   type        = string
+  default = "sample"
 }
 
 variable "vpc_cidr" {
@@ -30,7 +31,7 @@ variable "database_subnet_cidrs" {
 variable "app_port" {
   description = "Port the application listens on"
   type        = number
-  default     = 8080
+  default     = 80
 }
 
 variable "db_port" {

@@ -1,6 +1,8 @@
 ############################################
-# NETWORK MODULE - High Availability VPC
-# Spans 2 (or more) Availability Zones
+# NETWORK MODULE - Simplified HA VPC
+# Multi-AZ subnets (public/private/database)
+# but a SINGLE shared NAT Gateway (cost saving
+# tradeoff - see note above aws_nat_gateway.nat)
 ############################################
 
 data "aws_availability_zones" "available" {
@@ -23,7 +25,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "${var.project_name}-igw"
+    Name = "${var.project_name}-IGW"
   }
 }
 
@@ -67,26 +69,31 @@ resource "aws_subnet" "database" {
   }
 }
 
-# ---------------- Elastic IPs for NAT Gateways ----------------
-# One NAT Gateway PER AZ is what makes this highly available.
-# A single shared NAT Gateway is a single point of failure.
+# ---------------- Elastic IP for the single NAT Gateway ----------------
+# NOTE: This is a cost-saving simplification. Only ONE NAT Gateway is
+# created (in the first public subnet), shared by ALL private subnets
+# across every AZ. This means outbound internet access from private
+# subnets is NOT highly available - if the AZ hosting this NAT Gateway
+# fails, private instances in other AZs lose outbound internet access
+# too, even though they're still healthy and can still receive inbound
+# traffic from the ALB. Compute (ALB/ASG) and Database (RDS Multi-AZ)
+# remain fully HA regardless - only outbound NAT is a single point of
+# failure here.
 resource "aws_eip" "nat" {
-  count  = length(var.public_subnet_cidrs)
   domain = "vpc"
 
   tags = {
-    Name = "${var.project_name}-nat-eip-${count.index}"
+    Name = "${var.project_name}-NAT-IP"
   }
 }
 
-# ---------------- NAT Gateways (one per AZ) ----------------
+# ---------------- Single NAT Gateway (shared across all AZs) ----------------
 resource "aws_nat_gateway" "nat" {
-  count         = length(var.public_subnet_cidrs)
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public[0].id
 
   tags = {
-    Name = "${var.project_name}-nat-${count.index}"
+    Name = "${var.project_name}-NAT"
   }
 
   depends_on = [aws_internet_gateway.igw]
@@ -102,7 +109,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "${var.project_name}-public-rt"
+    Name = "${var.project_name}-Public-RT"
   }
 }
 
@@ -112,25 +119,24 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# ---------------- Private Route Tables (one per AZ, each to its own NAT) ----------------
+# ---------------- Private Route Table (single, shared across all AZs) ----------------
 resource "aws_route_table" "private" {
-  count  = length(var.private_subnet_cidrs)
   vpc_id = aws_vpc.main.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat[count.index].id
+    nat_gateway_id = aws_nat_gateway.nat.id
   }
 
   tags = {
-    Name = "${var.project_name}-private-rt-${count.index}"
+    Name = "${var.project_name}-private-rt"
   }
 }
 
 resource "aws_route_table_association" "private" {
   count          = length(aws_subnet.private)
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private[count.index].id
+  route_table_id = aws_route_table.private.id
 }
 
 # ---------------- Database Route Table (no internet route) ----------------
