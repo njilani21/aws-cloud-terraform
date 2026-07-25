@@ -7,6 +7,7 @@
 resource "aws_s3_bucket" "website" {
   bucket = "${var.project_name}-website-${data.aws_caller_identity.current.account_id}"
 
+  force_destroy = true
   tags = {
     Name = "${var.project_name}-website"
   }
@@ -50,7 +51,7 @@ resource "aws_s3_object" "website_files" {
       eot  = "application/vnd.ms-fontobject"
       otf  = "font/otf"
     },
-    lower(regex("\\.([^.]+)$", each.value)[0]),
+    lower(element(reverse(split(".", each.value)), 0)),
     "application/octet-stream"
   )
 }

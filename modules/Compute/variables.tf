@@ -52,7 +52,7 @@ variable "desired_capacity" {
 variable "website_source_dir" {
   description = "Local path to the static website folder to upload to S3"
   type        = string
-  default     = "../website"
+  default     = "./website"
 }
 
 # NOTE: user_data is no longer a plain variable default, because it needs to

@@ -38,6 +38,7 @@ module "compute" {
   alb_security_group_id  = module.network.alb_security_group_id
   app_security_group_id  = module.network.app_security_group_id
   instance_type          = var.instance_type
+  website_source_dir     = "${path.root}/website"
 }
 
 module "database" {

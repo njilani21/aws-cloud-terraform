@@ -42,7 +42,7 @@ resource "aws_lb_target_group" "app" {
   vpc_id   = var.vpc_id
 
   health_check {
-    path                = "/"
+    path                = "/health"
     healthy_threshold   = 3
     unhealthy_threshold = 3
     timeout             = 6
@@ -73,21 +73,22 @@ resource "aws_lb_listener" "http" {
 locals {
   user_data = <<-EOF
     #!/bin/bash
-    set -e
+    exec > /var/log/user-data.log 2>&1
 
-    # Install nginx and the AWS CLI
+    dnf update -y
     dnf install -y nginx awscli
 
     mkdir -p /usr/share/nginx/html
 
-    # Pull the static site down from S3 into nginx's web root
-    aws s3 sync s3://${aws_s3_bucket.website.id} /usr/share/nginx/html --delete
+    aws s3 sync s3://${aws_s3_bucket.website.id} /usr/share/nginx/html
 
-    # Simple health check endpoint for the ALB target group
     echo "OK" > /usr/share/nginx/html/health
 
     systemctl enable nginx
     systemctl restart nginx
+
+    systemctl status nginx
+    curl http://localhost/health
   EOF
 }
 
@@ -119,6 +120,10 @@ resource "aws_launch_template" "app" {
   lifecycle {
     create_before_destroy = true
   }
+
+  depends_on = [ 
+    aws_s3_object.website_files
+   ]
 }
 
 # ---------------- Auto Scaling Group (spans all private subnets/AZs) ----------------
