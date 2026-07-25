@@ -38,6 +38,7 @@ This repository contains Terraform (HCL) code to provision and manage AWS infras
 terraform init
 terraform plan
 terraform apply
+terraform destroy
 ```
 
 ## Technologies Used
